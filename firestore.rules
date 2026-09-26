@@ -1,0 +1,30 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Primary Health Centres collection & stock subcollection
+    match /phcs/{phcId} {
+      allow read: if true;
+      allow write: if true;
+      
+      match /stock/{stockId} {
+        allow read, write: if true;
+      }
+    }
+
+    // Photo-to-Stock reports (only extracted JSON data stored, no photo blob/Storage)
+    match /stockReports/{reportId} {
+      allow read, write: if true;
+    }
+
+    // Digital Twin simulations
+    match /simulations/{simulationId} {
+      allow read, write: if true;
+    }
+
+    // Redistribution transfer orders
+    match /redistributions/{redistributionId} {
+      allow read, write: if true;
+    }
+  }
+}

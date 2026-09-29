@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
-import { Camera, Upload, CheckCircle2, AlertCircle, RefreshCw, Send, Edit2, Code, ArrowRight, ShieldAlert, Sparkles } from 'lucide-react';
+import { Camera, Upload, CheckCircle2, AlertCircle, RefreshCw, Send, Edit2, Code, ArrowRight, ShieldAlert, Sparkles, Plus } from 'lucide-react';
 import { PHC, StockReportItem } from '../types';
 import { storeService } from '../services/storeService';
 import { analyzeShelfPhoto, VisionAnalysisResult } from '../services/geminiVision';
@@ -14,11 +14,11 @@ export const ReportStockPage: React.FC = () => {
   const [selectedPhcId, setSelectedPhcId] = useState<string>(initialPhcId);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
-  
+
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   const [analysisResult, setAnalysisResult] = useState<VisionAnalysisResult | null>(null);
   const [editableItems, setEditableItems] = useState<StockReportItem[]>([]);
-  
+
   const [showJsonRaw, setShowJsonRaw] = useState<boolean>(false);
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
 
@@ -27,12 +27,10 @@ export const ReportStockPage: React.FC = () => {
     setPhcs(data);
   }, []);
 
-  // Preset sample shelf photos for quick 1-click testing during live demo!
+  // Sample shelf presets
   const handleSelectSampleImage = async (sampleType: 'shelf1' | 'shelf2') => {
-    // Generate SVG/DataURL sample shelf images
     const label = sampleType === 'shelf1' ? 'Dengue & Fever Shelf Photo' : 'Antibiotics & Fluids Shelf Photo';
-    
-    // Create dummy SVG canvas to simulate shelf photo File
+
     const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400">
       <rect width="600" height="400" fill="#252A33"/>
       <rect x="20" y="50" width="560" height="20" fill="#4A5568"/>
@@ -57,7 +55,7 @@ export const ReportStockPage: React.FC = () => {
 
     const blob = new Blob([svgContent], { type: 'image/svg+xml' });
     const file = new File([blob], `${sampleType}_medicine_shelf.svg`, { type: 'image/svg+xml' });
-    
+
     setImageFile(file);
     setImagePreviewUrl(URL.createObjectURL(blob));
     setAnalysisResult(null);
@@ -83,7 +81,19 @@ export const ReportStockPage: React.FC = () => {
     const result = await analyzeShelfPhoto(imageFile);
     setIsAnalyzing(false);
     setAnalysisResult(result);
-    setEditableItems(result.items.map(item => ({ ...item })));
+    if (result.success && result.items) {
+      setEditableItems(result.items.map(item => ({ ...item })));
+    } else {
+      setEditableItems([]);
+    }
+  };
+
+  const handleEnableManualEntry = () => {
+    setEditableItems([
+      { medicineName: 'Paracetamol 500mg', quantity: 100, confidence: 'high', category: 'Analgesics', unit: 'strips' },
+      { medicineName: 'Oral Rehydration Salts (ORS)', quantity: 50, confidence: 'high', category: 'Rehydration', unit: 'kits' },
+      { medicineName: 'Normal Saline (NS) 500ml', quantity: 30, confidence: 'medium', category: 'IV Fluids', unit: 'bottles' },
+    ]);
   };
 
   const handleItemChange = (index: number, field: keyof StockReportItem, value: any) => {
@@ -99,17 +109,15 @@ export const ReportStockPage: React.FC = () => {
     ]);
   };
 
-  const handleConfirmAndSave = () => {
+  const handleConfirmAndSave = async () => {
     if (!selectedPhcId || editableItems.length === 0) return;
 
     const targetPhc = phcs.find(p => p.id === selectedPhcId);
     const phcName = targetPhc ? targetPhc.name : selectedPhcId;
 
-    // Update PHC stock in store
-    storeService.updatePHCStock(selectedPhcId, editableItems, 'photo');
+    await storeService.updatePHCStock(selectedPhcId, editableItems, 'photo');
 
-    // Save report entry
-    storeService.saveReport({
+    await storeService.saveReport({
       phcId: selectedPhcId,
       phcName,
       photoUrl: imagePreviewUrl || '',
@@ -138,13 +146,13 @@ export const ReportStockPage: React.FC = () => {
 
         <div className="hidden sm:flex items-center gap-2 bg-rust/10 border border-rust/30 px-3 py-1.5 rounded-full text-rust text-xs font-bold">
           <Sparkles size={14} />
-          <span>Gemini 1.5 Multimodal Engine</span>
+          <span>Gemini 3.5 Multimodal Engine</span>
         </div>
       </div>
 
       {/* Main WhatsApp-Styled Chat Upload Container */}
       <div className="bg-white rounded-2xl border border-slate-border shadow-md overflow-hidden flex flex-col">
-        {/* WhatsApp-Style Top Header Bar */}
+        {/* Header Bar */}
         <div className="bg-charcoal text-white px-6 py-4 flex items-center justify-between border-b border-charcoal-surface">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-rust flex items-center justify-center font-bold text-lg text-white">
@@ -159,7 +167,6 @@ export const ReportStockPage: React.FC = () => {
             </div>
           </div>
 
-          {/* PHC Selector Dropdown */}
           <div className="flex items-center gap-2">
             <label className="text-xs text-slate-300 font-medium hidden sm:inline">Reporting for:</label>
             <select
@@ -174,11 +181,11 @@ export const ReportStockPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Upload Body Area */}
+        {/* Upload Body */}
         <div className="p-6 space-y-6 bg-offwhite/50">
           {!isSubmitted ? (
             <>
-              {/* Step 1: Photo Input / Sample Picker */}
+              {/* Step 1: Photo Input */}
               <div className="bg-white p-6 rounded-xl border border-slate-border space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <h4 className="font-bold text-sm text-charcoal flex items-center gap-2">
@@ -186,7 +193,6 @@ export const ReportStockPage: React.FC = () => {
                     Upload or Select Medicine Shelf Photo
                   </h4>
 
-                  {/* Sample presets for 1-click testing */}
                   <div className="flex items-center gap-2 text-xs">
                     <span className="text-slate-subtle font-medium">Try Sample Shelf:</span>
                     <button
@@ -204,7 +210,6 @@ export const ReportStockPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Dropzone / Preview */}
                 <div className="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:border-rust transition-colors bg-white">
                   {imagePreviewUrl ? (
                     <div className="space-y-4">
@@ -235,7 +240,6 @@ export const ReportStockPage: React.FC = () => {
                   )}
                 </div>
 
-                {/* Trigger Analyze Button */}
                 {imageFile && !analysisResult && (
                   <button
                     onClick={handleAnalyzePhoto}
@@ -245,7 +249,7 @@ export const ReportStockPage: React.FC = () => {
                     {isAnalyzing ? (
                       <>
                         <RefreshCw size={18} className="animate-spin" />
-                        <span>Gemini Vision Model Reading Shelf Stock...</span>
+                        <span>Gemini 3.5 Reading Shelf Stock...</span>
                       </>
                     ) : (
                       <>
@@ -257,8 +261,39 @@ export const ReportStockPage: React.FC = () => {
                 )}
               </div>
 
-              {/* Step 2: AI Result & Editable Confirmation Table */}
-              {analysisResult && (
+              {/* Error Box with Retry & Manual Option */}
+              {analysisResult && !analysisResult.success && (
+                <div className="bg-red-50 p-6 rounded-xl border border-red-200 space-y-4">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle size={22} className="text-risk-critical shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="font-bold text-sm text-risk-critical">Gemini Vision AI Analysis Error</h4>
+                      <p className="text-xs text-slate-700 mt-1">{analysisResult.error}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 pt-2">
+                    <button
+                      onClick={handleAnalyzePhoto}
+                      className="inline-flex items-center gap-1.5 bg-rust hover:bg-rust-hover text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors"
+                    >
+                      <RefreshCw size={14} />
+                      <span>Retry AI Analysis</span>
+                    </button>
+
+                    <button
+                      onClick={handleEnableManualEntry}
+                      className="inline-flex items-center gap-1.5 bg-white border border-slate-300 text-charcoal text-xs font-semibold px-4 py-2 rounded-lg transition-colors"
+                    >
+                      <Edit2 size={14} />
+                      <span>Use Manual Entry</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Step 2: Successful AI Result & Editable Confirmation Table */}
+              {(analysisResult?.success || editableItems.length > 0) && (
                 <div className="bg-white p-6 rounded-xl border border-slate-border space-y-6">
                   <div className="flex items-center justify-between border-b border-slate-border pb-4">
                     <div>
@@ -271,24 +306,24 @@ export const ReportStockPage: React.FC = () => {
                       </p>
                     </div>
 
-                    <button
-                      onClick={() => setShowJsonRaw(!showJsonRaw)}
-                      className="text-xs text-slate-secondary hover:text-charcoal font-semibold flex items-center gap-1 bg-slate-100 px-2.5 py-1 rounded"
-                    >
-                      <Code size={13} />
-                      <span>{showJsonRaw ? 'Hide JSON' : 'View Model JSON'}</span>
-                    </button>
+                    {analysisResult?.rawResponse && (
+                      <button
+                        onClick={() => setShowJsonRaw(!showJsonRaw)}
+                        className="text-xs text-slate-secondary hover:text-charcoal font-semibold flex items-center gap-1 bg-slate-100 px-2.5 py-1 rounded"
+                      >
+                        <Code size={13} />
+                        <span>{showJsonRaw ? 'Hide JSON' : 'View Model JSON'}</span>
+                      </button>
+                    )}
                   </div>
 
-                  {/* Optional Collapsible Model Raw Output */}
-                  {showJsonRaw && (
+                  {showJsonRaw && analysisResult?.rawResponse && (
                     <div className="bg-charcoal text-emerald-400 p-4 rounded-lg text-xs font-mono overflow-x-auto space-y-1">
                       <div className="text-slate-400 text-[10px] uppercase font-bold tracking-wider">Raw Gemini API Multimodal Output</div>
                       <pre>{analysisResult.rawResponse}</pre>
                     </div>
                   )}
 
-                  {/* Editable Items Table */}
                   <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse text-sm">
                       <thead>
@@ -324,12 +359,11 @@ export const ReportStockPage: React.FC = () => {
                             </td>
 
                             <td className="py-3 px-3">
-                              <span className={`text-xs font-semibold px-2 py-0.5 rounded ${
-                                item.confidence === 'high'
-                                  ? 'bg-emerald-100 text-emerald-800'
-                                  : 'bg-amber-100 text-amber-800'
-                              }`}>
-                                {item.confidence.toUpperCase()}
+                              <span className={`text-xs font-semibold px-2 py-0.5 rounded ${item.confidence === 'high'
+                                ? 'bg-emerald-100 text-emerald-800'
+                                : 'bg-amber-100 text-amber-800'
+                                }`}>
+                                {(item.confidence || 'high').toUpperCase()}
                               </span>
                             </td>
                           </tr>
@@ -343,7 +377,7 @@ export const ReportStockPage: React.FC = () => {
                       onClick={handleAddItem}
                       className="text-xs font-semibold text-rust hover:underline flex items-center gap-1"
                     >
-                      + Add Unlisted Medicine
+                      <Plus size={14} /> Add Unlisted Medicine
                     </button>
 
                     <button
@@ -358,7 +392,6 @@ export const ReportStockPage: React.FC = () => {
               )}
             </>
           ) : (
-            /* Success State */
             <div className="bg-white p-8 rounded-xl border border-emerald-200 text-center space-y-4">
               <div className="w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 mx-auto flex items-center justify-center">
                 <CheckCircle2 size={32} />

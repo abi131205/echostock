@@ -52,7 +52,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentRole, onRoleChange }) =
                   EchoStock
                 </span>
                 <span className="text-[10px] text-slate-400 font-medium tracking-wider uppercase">
-                  Team Kryxen
+                  Health Supply Resilience
                 </span>
               </div>
             )}

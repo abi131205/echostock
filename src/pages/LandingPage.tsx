@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Camera, Cpu, Activity, ArrowRight, ShieldCheck, UserCheck, Layers, MapPin, Zap } from 'lucide-react';
+import { Camera, Cpu, Activity, ArrowRight, ShieldCheck, UserCheck, Layers, MapPin } from 'lucide-react';
 import { UserRole } from '../types';
 
 interface LandingPageProps {
@@ -17,10 +17,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectRole }) => {
         <div className="absolute -left-12 -bottom-12 w-64 h-64 bg-slate-secondary/20 rounded-full blur-3xl pointer-events-none" />
 
         <div className="max-w-3xl relative z-10 space-y-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rust/20 border border-rust/40 text-rust-border text-xs font-semibold uppercase tracking-wider">
-            <Zap size={13} className="text-rust" />
-            Problem Statement 3 — Smart Health & Supply Chain Resilience
-          </div>
 
           <h1 className="font-serif text-3xl sm:text-5xl font-bold tracking-tight text-white leading-tight">
             A photo becomes real-time stock data.{' '}

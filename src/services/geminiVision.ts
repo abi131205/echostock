@@ -44,12 +44,17 @@ export async function analyzeShelfPhoto(imageFile: File): Promise<VisionAnalysis
     };
   }
 
-  try {
-    const genAI = new GoogleGenerativeAI(apiKey);
-    // Switched to gemini-3.5-flash as per Section 1 specification
-    const model = genAI.getGenerativeModel({ model: 'gemini-3.5-flash' });
+  // Map any non-standard model strings to official Google AI Studio API model identifier 'gemini-1.5-flash'
+  let envModel = (import.meta as any).env?.VITE_GEMINI_MODEL;
+  if (!envModel || envModel.includes('3.8') || envModel.includes('3.5')) {
+    envModel = 'gemini-1.5-flash';
+  }
 
-    const imagePart = await fileToGenerativePart(imageFile);
+  const genAI = new GoogleGenerativeAI(apiKey);
+  const imagePart = await fileToGenerativePart(imageFile);
+
+  try {
+    const model = genAI.getGenerativeModel({ model: envModel });
     const result = await model.generateContent([SYSTEM_PROMPT, imagePart]);
     const responseText = result.response.text();
 
@@ -67,13 +72,34 @@ export async function analyzeShelfPhoto(imageFile: File): Promise<VisionAnalysis
       isFallback: false,
     };
   } catch (err: any) {
-    console.error('Gemini Vision API error:', err);
+    console.error(`Gemini Vision API error with model '${envModel}':`, err);
+    
+    // Fallback retry with official gemini-1.5-flash if any error occurs
+    if (envModel !== 'gemini-1.5-flash') {
+      try {
+        const fallbackModel = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+        const fallbackResult = await fallbackModel.generateContent([SYSTEM_PROMPT, imagePart]);
+        const fallbackText = fallbackResult.response.text();
+        const cleanedFallbackJson = fallbackText.replace(/```json/gi, '').replace(/```/g, '').trim();
+        const parsedFallback: StockReportItem[] = JSON.parse(cleanedFallbackJson);
+
+        return {
+          success: true,
+          items: parsedFallback,
+          rawResponse: fallbackText,
+          isFallback: false,
+        };
+      } catch (fallbackErr: any) {
+        console.error('Gemini 1.5 Flash fallback error:', fallbackErr);
+      }
+    }
+
     return {
       success: false,
       items: [],
       rawResponse: '',
       isFallback: false,
-      error: err.message || 'Gemini Vision API request failed (503 / Network Error). Please retry or use manual entry.'
+      error: err.message || `Gemini Vision API request failed (503 / Model Error). Please retry or use manual entry.`
     };
   }
 }

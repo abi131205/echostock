@@ -44,13 +44,13 @@ export async function analyzeShelfPhoto(imageFile: File): Promise<VisionAnalysis
     };
   }
 
-  // Model strictly set to gemini-3.5-flash
   const modelName = (import.meta as any).env?.VITE_GEMINI_MODEL || 'gemini-3.5-flash';
 
   const genAI = new GoogleGenerativeAI(apiKey);
   const imagePart = await fileToGenerativePart(imageFile);
 
   try {
+    console.log(`Attempting Gemini Vision extraction with model '${modelName}'...`);
     const model = genAI.getGenerativeModel({ model: modelName });
     const result = await model.generateContent([SYSTEM_PROMPT, imagePart]);
     const responseText = result.response.text();
@@ -65,17 +65,17 @@ export async function analyzeShelfPhoto(imageFile: File): Promise<VisionAnalysis
     return {
       success: true,
       items: parsed,
-      rawResponse: responseText,
+      rawResponse: `// Google AI Studio Vision Result (${modelName})\n` + responseText,
       isFallback: false,
     };
   } catch (err: any) {
-    console.error(`Gemini 3.5 Vision API error with model '${modelName}':`, err);
+    console.error(`Gemini Vision API error with model '${modelName}':`, err);
     return {
       success: false,
       items: [],
       rawResponse: '',
       isFallback: false,
-      error: err.message || `Gemini 3.5 Vision API request failed (503 / Model Error). Please retry or use manual entry.`
+      error: err.message || `Gemini Vision API request failed (${modelName}). Please retry or use manual entry.`
     };
   }
 }

@@ -32,15 +32,15 @@ export const RedistributePage: React.FC = () => {
 
       if (!currentSim) {
         currentSim = await storeService.saveSimulation({
-          district: 'Chengalpattu',
+          district: 'Coimbatore',
           scenarioLabel: 'Dengue Spike',
           demandMultiplier: 1.6,
           durationDays: 14,
           results: [
-            { phcId: 'phc-tambaram', phcName: 'PHC Tambaram Urban', medicineName: 'Paracetamol 500mg', currentStock: 140, projectedDemand: 320, shortfall: 180, status: 'critical' },
-            { phcId: 'phc-tambaram', phcName: 'PHC Tambaram Urban', medicineName: 'Oral Rehydration Salts (ORS)', currentStock: 80, projectedDemand: 220, shortfall: 140, status: 'critical' },
-            { phcId: 'phc-tambaram', phcName: 'PHC Tambaram Urban', medicineName: 'Normal Saline (NS) 500ml', currentStock: 40, projectedDemand: 160, shortfall: 120, status: 'critical' },
-            { phcId: 'phc-velachery', phcName: 'PHC Velachery', medicineName: 'Oral Rehydration Salts (ORS)', currentStock: 120, projectedDemand: 190, shortfall: 70, status: 'low' },
+            { phcId: 'phc-peelamedu', phcName: 'PHC Peelamedu', medicineName: 'Paracetamol 500mg', currentStock: 140, projectedDemand: 320, shortfall: 180, status: 'critical' },
+            { phcId: 'phc-peelamedu', phcName: 'PHC Peelamedu', medicineName: 'Oral Rehydration Salts (ORS)', currentStock: 80, projectedDemand: 220, shortfall: 140, status: 'critical' },
+            { phcId: 'phc-peelamedu', phcName: 'PHC Peelamedu', medicineName: 'Normal Saline (NS) 500ml', currentStock: 40, projectedDemand: 160, shortfall: 120, status: 'critical' },
+            { phcId: 'phc-guindy', phcName: 'PHC Guindy Urban', medicineName: 'Oral Rehydration Salts (ORS)', currentStock: 120, projectedDemand: 190, shortfall: 70, status: 'low' },
           ]
         });
       }

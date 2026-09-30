@@ -12,10 +12,10 @@ import {
   orderBy
 } from 'firebase/firestore';
 
-const LOCAL_STORAGE_KEY_PHCS = 'echostock_phcs_v1';
-const LOCAL_STORAGE_KEY_REPORTS = 'echostock_reports_v1';
-const LOCAL_STORAGE_KEY_SIMULATIONS = 'echostock_simulations_v1';
-const LOCAL_STORAGE_KEY_REDISTRIBUTIONS = 'echostock_redistributions_v1';
+const LOCAL_STORAGE_KEY_PHCS = 'echostock_phcs_v2';
+const LOCAL_STORAGE_KEY_REPORTS = 'echostock_reports_v2';
+const LOCAL_STORAGE_KEY_SIMULATIONS = 'echostock_simulations_v2';
+const LOCAL_STORAGE_KEY_REDISTRIBUTIONS = 'echostock_redistributions_v2';
 
 type Listener<T> = (data: T) => void;
 

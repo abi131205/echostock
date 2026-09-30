@@ -10,7 +10,7 @@ export const SimulatePage: React.FC = () => {
   const navigate = useNavigate();
   const [phcs, setPhcs] = useState<PHC[]>([]);
   
-  const [district, setDistrict] = useState<string>('Chengalpattu');
+  const [district, setDistrict] = useState<string>('Chennai');
   const [scenarioLabel, setScenarioLabel] = useState<'Dengue Spike' | 'Flu Season' | 'Monsoon / Floods' | 'Custom'>('Dengue Spike');
   const [multiplier, setMultiplier] = useState<number>(1.6);
   const [durationDays, setDurationDays] = useState<number>(14);
@@ -22,7 +22,7 @@ export const SimulatePage: React.FC = () => {
     setPhcs(data);
 
     // Initial run
-    const sim = runDigitalTwinSimulation(data, 'Chengalpattu', 'Dengue Spike', 1.6, 14);
+    const sim = runDigitalTwinSimulation(data, 'Chennai', 'Dengue Spike', 1.6, 14);
     setActiveSimulation(sim);
   }, []);
 
@@ -104,10 +104,10 @@ export const SimulatePage: React.FC = () => {
               onChange={(e) => setDistrict(e.target.value)}
               className="w-full bg-offwhite border border-slate-border text-charcoal text-sm font-semibold rounded-lg px-3 py-2 focus:outline-none focus:border-rust"
             >
-              <option value="Chengalpattu">Chengalpattu District</option>
-              <option value="Kanchipuram">Kanchipuram District</option>
-              <option value="Thiruvallur">Thiruvallur District</option>
               <option value="All Districts">All Network Districts</option>
+              {Array.from(new Set(phcs.map(p => p.district))).map(d => (
+                <option key={d} value={d}>{d} District</option>
+              ))}
             </select>
           </div>
 
